@@ -1,0 +1,67 @@
+# --- lokalne / prywatne (jak dotychczas) ---
+/niedodawac
+.claude
+
+# --- Python (backend) ---
+backend/.venv/
+venv/
+.venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+.eggs/
+dist/
+build/
+pip-wheel-metadata/
+
+# --- Node / Vite (frontend) ---
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+*.tsbuildinfo
+
+# --- Zmienne środowiskowe i sekrety (NIE commituj; zostaw .env.example) ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+
+# --- Dane runtime / deployment (bazy, wygenerowane PDF) ---
+*.db
+*.sqlite
+*.sqlite3
+backend/pdfs/
+uploads/
+
+# --- Logi i cache ---
+*.log
+logs/
+.cache/
+
+# --- Testy / coverage ---
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+
+# --- Systemy plików ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Edytory (opcjonalnie — usuń linię jeśli chcesz współdzielić ustawienia) ---
+.idea/
+*.swp
+*.swo
+*~
