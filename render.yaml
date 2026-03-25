@@ -7,8 +7,9 @@ services:
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     plan: free
     envVars:
+      # Musi być zgodne z backend/runtime.txt — NIE 3.14 (brak wheeli pydantic-core na Renderze)
       - key: PYTHON_VERSION
-        value: "3.11.9"
+        value: "3.12.8"
       - key: DATABASE_PATH
         value: /tmp/offers.db
       - key: PDF_DIR
