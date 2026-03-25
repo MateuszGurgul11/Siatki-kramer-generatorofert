@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: kramer-generator-api
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    plan: free
+    envVars:
+      - key: DATABASE_PATH
+        value: /tmp/offers.db
+      - key: PDF_DIR
+        value: /tmp/pdfs
+      - key: COMPANY_ADDRESS
+        value: "ul. Przykładowa 1, 00-000 Warszawa"
+      - key: COMPANY_NIP
+        value: "000-000-00-00"
+      - key: COMPANY_PHONE
+        value: "+48 000 000 000"
+      - key: COMPANY_EMAIL
+        value: "biuro@siatki-kramer.pl"
+      - key: COMPANY_WEBSITE
+        value: "https://sklep.siatki-kramer.pl"
+      - key: COMPANY_NAME
+        value: "Siatki Kramer"
+      - key: SENDER_NAME
+        value: "Siatki Kramer"
+      # E-mail — wpisz ręcznie w dashboardzie Render (Settings → Environment)
+      # - key: SMTP_HOST
+      # - key: SMTP_PORT
+      # - key: SMTP_USER
+      # - key: SMTP_PASSWORD

@@ -30,8 +30,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-PDF_DIR = Path("./pdfs")
-PDF_DIR.mkdir(exist_ok=True)
+PDF_DIR = Path(os.getenv("PDF_DIR", "./pdfs"))
+PDF_DIR.mkdir(parents=True, exist_ok=True)
 
 
 @app.on_event("startup")
