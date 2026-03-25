@@ -114,17 +114,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-kramer-green text-white shadow-lg">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center gap-4">
-          <div>
-            <h1 className="text-xl font-bold tracking-tight">Siatki Kramer</h1>
-            <p className="text-green-200 text-sm">Generator ofert piłkochwytów</p>
-          </div>
-        </div>
-      </header>
-
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-4 pt-16 pb-8 sm:pt-20">
         <StepIndicator steps={STEPS} currentStep={step} />
 
         <div className="mt-8 flex gap-6 items-start">

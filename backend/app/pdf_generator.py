@@ -34,8 +34,8 @@ def _ensure_fonts():
     _fonts_registered = True
 
 # Kolory firmowe
-GREEN = colors.HexColor("#1a5c2a")
-LIGHT_GREEN = colors.HexColor("#e8f5e9")
+GREEN = colors.HexColor("#0e6d4d")
+LIGHT_GREEN = colors.HexColor("#e6f2ef")
 DARK_GRAY = colors.HexColor("#333333")
 MID_GRAY = colors.HexColor("#666666")
 LIGHT_GRAY = colors.HexColor("#f5f5f5")

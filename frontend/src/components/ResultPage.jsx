@@ -5,12 +5,6 @@ export default function ResultPage({ offerResult, customer, onReset }) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-kramer-green text-white shadow-lg">
-        <div className="max-w-6xl mx-auto px-4 py-4">
-          <h1 className="text-xl font-bold">Siatki Kramer — Generator Ofert</h1>
-        </div>
-      </header>
-
       <div className="max-w-2xl mx-auto px-4 py-16">
         <div className="card text-center">
           {/* Sukces ikona */}

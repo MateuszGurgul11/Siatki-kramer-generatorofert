@@ -10,7 +10,7 @@
 
 @layer components {
   .btn-primary {
-    @apply bg-kramer-green text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply bg-kramer-green text-white px-6 py-3 rounded-lg font-semibold hover:bg-kramer-green-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
   }
   .btn-secondary {
     @apply bg-white text-kramer-green border-2 border-kramer-green px-6 py-3 rounded-lg font-semibold hover:bg-kramer-green-light transition-colors;

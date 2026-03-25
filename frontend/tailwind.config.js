@@ -8,9 +8,10 @@ export default {
     extend: {
       colors: {
         kramer: {
-          green: '#1a5c2a',
-          'green-light': '#e8f5e9',
-          'green-mid': '#4caf50',
+          green: '#0e6d4d',
+          'green-dark': '#0a5440',
+          'green-light': '#e6f2ef',
+          'green-mid': '#2a9d7a',
         }
       }
     },

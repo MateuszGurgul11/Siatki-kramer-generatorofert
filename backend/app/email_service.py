@@ -39,7 +39,7 @@ def send_offer_email(
         <html lang="pl">
         <head><meta charset="UTF-8"></head>
         <body style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <div style="background: #1a5c2a; padding: 20px; border-radius: 8px 8px 0 0;">
+            <div style="background: #0e6d4d; padding: 20px; border-radius: 8px 8px 0 0;">
                 <h1 style="color: white; margin: 0; font-size: 22px;">Siatki Kramer</h1>
                 <p style="color: #a5d6a7; margin: 4px 0 0 0; font-size: 13px;">Generator ofert piłkochwytów</p>
             </div>
@@ -47,9 +47,9 @@ def send_offer_email(
                 <p>Szanowny/a Panie/Pani <b>{recipient_name}</b>,</p>
                 <p>Dziękujemy za skorzystanie z naszego generatora ofert. W załączeniu przesyłamy wycenę materiałów do budowy piłkochwytu.</p>
 
-                <div style="background: #e8f5e9; border-left: 4px solid #1a5c2a; padding: 16px; margin: 20px 0; border-radius: 0 8px 8px 0;">
+                <div style="background: #e6f2ef; border-left: 4px solid #0e6d4d; padding: 16px; margin: 20px 0; border-radius: 0 8px 8px 0;">
                     <p style="margin: 0; font-size: 13px; color: #555;">Numer oferty</p>
-                    <p style="margin: 4px 0; font-size: 20px; font-weight: bold; color: #1a5c2a;">{offer_number}</p>
+                    <p style="margin: 4px 0; font-size: 20px; font-weight: bold; color: #0e6d4d;">{offer_number}</p>
                     <p style="margin: 8px 0 0 0; font-size: 13px; color: #555;">Wartość brutto: <b style="font-size: 16px;">{total_brutto:.2f} zł</b></p>
                 </div>
 
@@ -57,7 +57,7 @@ def send_offer_email(
 
                 <div style="text-align: center; margin: 24px 0;">
                     <a href="{order_link}"
-                       style="background: #1a5c2a; color: white; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: bold; display: inline-block;">
+                       style="background: #0e6d4d; color: white; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: bold; display: inline-block;">
                         Złóż zamówienie →
                     </a>
                 </div>
@@ -65,7 +65,7 @@ def send_offer_email(
                 <p style="font-size: 12px; color: #888; border-top: 1px solid #e0e0e0; padding-top: 16px; margin-top: 24px;">
                     Oferta jest orientacyjna i nie stanowi oferty w rozumieniu przepisów prawa.<br>
                     Ceny netto, VAT 23%. Wycena nie obejmuje kosztów montażu.<br><br>
-                    <b>Siatki Kramer</b> | <a href="{COMPANY_WEBSITE}" style="color: #1a5c2a;">{COMPANY_WEBSITE}</a>
+                    <b>Siatki Kramer</b> | <a href="{COMPANY_WEBSITE}" style="color: #0e6d4d;">{COMPANY_WEBSITE}</a>
                 </p>
             </div>
         </body>
