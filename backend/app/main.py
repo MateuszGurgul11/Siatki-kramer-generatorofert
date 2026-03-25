@@ -24,7 +24,11 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000", "*"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "*",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -37,6 +41,16 @@ PDF_DIR.mkdir(parents=True, exist_ok=True)
 @app.on_event("startup")
 def startup():
     init_db()
+
+
+@app.get("/")
+def root():
+    """Szybka weryfikacja, że serwis działa (wcześniej `/` zwracało 404)."""
+    return {
+        "service": "Siatki Kramer — Generator Ofert API",
+        "docs": "/docs",
+        "health": "/health",
+    }
 
 
 @app.get("/api/nets")

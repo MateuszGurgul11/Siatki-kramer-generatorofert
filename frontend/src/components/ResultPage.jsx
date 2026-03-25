@@ -1,5 +1,7 @@
+import { resolveApiUrl } from '../api'
+
 export default function ResultPage({ offerResult, customer, onReset }) {
-  const pdfUrl = offerResult.pdf_url
+  const pdfUrl = resolveApiUrl(offerResult.pdf_url)
 
   return (
     <div className="min-h-screen bg-gray-50">
