@@ -241,7 +241,24 @@ Na podstawie pliku Excel — przykładowa kalkulacja gotowego piłkochwytu:
 
 ---
 
-## 8. Otwarte pytania / do ustalenia
+## 8. Osadzenie w iframe (WordPress / Vercel)
+
+Generator może być wyświetlany w `<iframe>` na stronie WordPress. Aby **wysokość iframe dopasowywała się do treści** (bez podwójnego scrolla), strona rodzica i aplikacja w iframe muszą używać **tej samej wersji** biblioteki [iframe-resizer](https://www.npmjs.com/package/iframe-resizer):
+
+| Strona | Skrypt / pakiet |
+|--------|-------------------|
+| WordPress (rodzic) | `iframeResizer.js` (np. z CDN w tej samej wersji co poniżej) |
+| Ta aplikacja (Vite/React) | npm: `iframe-resizer` **^4.3.9** — skrypt child ładowany w `main.jsx` |
+
+**Konfiguracja rodzica:** przy inicjalizacji `iFrameResize` ustaw `checkOrigin` tak, aby zawierał dokładny origin frontendu (np. produkcyjny URL na Vercelu). Dzięki temu `postMessage` z wysokością będzie akceptowany tylko z zaufanego źródła.
+
+**CSP / nagłówki:** w `frontend/vercel.json` ustawiono `Content-Security-Policy: frame-ancestors *`, aby strona mogła być osadzana w iframe. W produkcji możesz zawęzić `frame-ancestors` do domeny WordPressa (np. `https://siatki-kramer.pl`), jeśli nie potrzebujesz osadzać aplikacji z innych hostów.
+
+Po wdrożeniu weryfikuj działanie na urządzeniach mobilnych (kroki 1–4, obrót ekranu).
+
+---
+
+## 9. Otwarte pytania / do ustalenia
 
 - [ ] Hostowanie: czy generator jest częścią WordPressa czy osobną aplikacją?
 - [ ] Skąd pobierana jest aktualna lista siatek i ich ceny? (API sklepu, ręczna lista, CMS?)

@@ -86,6 +86,28 @@ export default function App() {
     return () => clearTimeout(timeout)
   }, [runCalculation])
 
+  // iframe-resizer: wymuś ponowne liczenie wysokości po zmianie treści (krok, wynik, ładowanie)
+  useEffect(() => {
+    const notify = () => {
+      const pf = typeof window !== 'undefined' && window.parentIFrame
+      if (pf && typeof pf.size === 'function') {
+        requestAnimationFrame(() => pf.size())
+      }
+    }
+    notify()
+    const t = window.setTimeout(notify, 100)
+    return () => window.clearTimeout(t)
+  }, [step, result, calcLoading, offerResult])
+
+  useEffect(() => {
+    const onResize = () => {
+      const pf = typeof window !== 'undefined' && window.parentIFrame
+      if (pf && typeof pf.size === 'function') pf.size()
+    }
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
   const handleGenerateOffer = async () => {
     if (!customer.name || !customer.email) {
       setError('Wypełnij imię/nazwę i adres e-mail')
@@ -113,13 +135,13 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       <div className="max-w-6xl mx-auto px-4 pt-16 pb-8 sm:pt-20">
         <StepIndicator steps={STEPS} currentStep={step} />
 
-        <div className="mt-8 flex gap-6 items-start">
+        <div className="mt-8 flex flex-col lg:flex-row gap-6 items-stretch lg:items-start">
           {/* Main form */}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 order-1">
             {step === 1 && (
               <Step1Shape
                 shape={shape}
@@ -161,8 +183,8 @@ export default function App() {
             )}
           </div>
 
-          {/* Live Preview */}
-          <div className="w-80 flex-shrink-0 hidden lg:block">
+          {/* Live Preview — pod formularzem na mobile, bokiem na desktop */}
+          <div className="w-full lg:w-80 lg:flex-shrink-0 order-2 lg:sticky lg:top-4 lg:self-start">
             <QuotePreview result={result} loading={calcLoading} nets={nets} netId={netId} />
           </div>
         </div>

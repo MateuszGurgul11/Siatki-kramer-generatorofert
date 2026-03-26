@@ -2,7 +2,7 @@ export default function QuotePreview({ result, loading, nets, netId }) {
   const net = nets.find(n => n.id === netId)
 
   return (
-    <div className="card sticky top-6">
+    <div className="card static lg:sticky lg:top-6 !p-4 sm:!p-6">
       <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
         <span className="w-2 h-2 bg-kramer-green rounded-full"></span>
         Podgląd wyceny

@@ -4,7 +4,7 @@ export default function ResultPage({ offerResult, customer, onReset }) {
   const pdfUrl = resolveApiUrl(offerResult.pdf_url)
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       <div className="max-w-2xl mx-auto px-4 py-16">
         <div className="card text-center">
           {/* Sukces ikona */}

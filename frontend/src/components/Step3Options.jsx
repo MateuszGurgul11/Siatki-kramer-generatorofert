@@ -16,7 +16,7 @@ export default function Step3Options({
       {/* Montaż słupów */}
       <div>
         <h3 className="font-semibold text-gray-700 mb-3">Opcja montażu słupów</h3>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <button
             onClick={() => onMountingChange('concrete')}
             className={`p-4 border-2 rounded-xl text-left transition-all ${mounting === 'concrete' ? 'border-kramer-green bg-kramer-green-light' : 'border-gray-200 hover:border-gray-300'}`}
