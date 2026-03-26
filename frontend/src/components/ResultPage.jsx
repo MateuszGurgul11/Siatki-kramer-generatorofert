@@ -1,4 +1,5 @@
 import { resolveApiUrl } from '../api'
+import GeneratorCredits from './GeneratorCredits'
 
 export default function ResultPage({ offerResult, customer, onReset }) {
   const pdfUrl = resolveApiUrl(offerResult.pdf_url)
@@ -61,6 +62,8 @@ export default function ResultPage({ offerResult, customer, onReset }) {
         <p className="text-center text-xs text-gray-400 mt-8">
           Wycena jest orientacyjna i nie stanowi oferty w rozumieniu przepisów prawa.
         </p>
+
+        <GeneratorCredits />
       </div>
     </div>
   )

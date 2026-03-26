@@ -6,6 +6,7 @@ import Step3Options from './components/Step3Options'
 import Step4Customer from './components/Step4Customer'
 import QuotePreview from './components/QuotePreview'
 import ResultPage from './components/ResultPage'
+import GeneratorCredits from './components/GeneratorCredits'
 import { fetchNets, calculateQuote, generateOffer } from './api'
 
 const STEPS = [
@@ -188,6 +189,8 @@ export default function App() {
             <QuotePreview result={result} loading={calcLoading} nets={nets} netId={netId} />
           </div>
         </div>
+
+        <GeneratorCredits />
       </div>
     </div>
   )
