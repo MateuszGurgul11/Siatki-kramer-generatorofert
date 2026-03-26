@@ -77,17 +77,20 @@ function CloseIcon({ className }) {
   )
 }
 
-/** Pełnoekranowy, czytelny podgląd po kliknięciu ikony powiększenia */
+/** Modal: X przyklejony do rogu ekranu (fixed + safe-area), treść przewijalna — działa na telefonie w iframe. */
 function ShapePreviewModal({ shape, onClose }) {
   useEffect(() => {
     const prev = document.body.style.overflow
+    const prevTouchAction = document.body.style.touchAction
     document.body.style.overflow = 'hidden'
+    document.body.style.touchAction = 'none'
     const onKey = e => {
       if (e.key === 'Escape') onClose()
     }
     window.addEventListener('keydown', onKey)
     return () => {
       document.body.style.overflow = prev
+      document.body.style.touchAction = prevTouchAction
       window.removeEventListener('keydown', onKey)
     }
   }, [onClose])
@@ -96,45 +99,51 @@ function ShapePreviewModal({ shape, onClose }) {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[300] flex items-center justify-center p-3 sm:p-6"
+      className="fixed inset-0 z-[9999] flex min-h-[100dvh] flex-col bg-gray-900/75"
+      style={{ WebkitTapHighlightColor: 'transparent' }}
       role="dialog"
       aria-modal="true"
       aria-labelledby="shape-preview-title"
     >
+      {/* Zamknięcie tłem — poniżej przycisku X (niższy z-index) */}
       <button
         type="button"
-        className="absolute inset-0 bg-gray-900/55 backdrop-blur-[2px] transition-opacity"
+        className="absolute inset-0 z-0 cursor-default"
         aria-label="Zamknij podgląd"
         onClick={onClose}
       />
-      <div className="relative z-10 flex w-full max-w-4xl max-h-[min(92vh,900px)] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5">
-        <div className="flex items-start justify-between gap-3 border-b border-gray-100 px-4 py-3 sm:px-5 sm:py-4">
-          <div className="min-w-0 pr-2">
-            <h3 id="shape-preview-title" className="text-base font-semibold text-gray-900 sm:text-lg">
-              {shape.label}
-            </h3>
-            <p className="mt-0.5 text-sm text-gray-500">
-              {shape.description} · {shape.braces}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-800"
-            aria-label="Zamknij"
-          >
-            <CloseIcon className="h-5 w-5" />
-          </button>
+
+      {/* X zawsze widoczny w rogu — fixed, nie przewija się z treścią */}
+      <button
+        type="button"
+        onClick={onClose}
+        className="fixed z-[10001] flex h-12 w-12 items-center justify-center rounded-full border border-white/30 bg-white text-gray-800 shadow-lg transition active:scale-95 sm:h-11 sm:w-11"
+        style={{
+          top: 'max(0.75rem, env(safe-area-inset-top, 0px))',
+          right: 'max(0.75rem, env(safe-area-inset-right, 0px))',
+        }}
+        aria-label="Zamknij"
+      >
+        <CloseIcon className="h-6 w-6 sm:h-5 sm:w-5" />
+      </button>
+
+      {/* Przewijalna treść — pod spodem, z paddingiem od „góry” pod X */}
+      <div className="relative z-[10000] mx-auto flex w-full max-w-4xl flex-1 flex-col overflow-y-auto overscroll-contain px-4 pb-8 pt-[4.25rem] sm:px-6 sm:pb-10 sm:pt-16">
+        <div className="mb-4 shrink-0 rounded-2xl bg-white/95 px-4 py-3 shadow-sm ring-1 ring-black/5 sm:px-5">
+          <h3 id="shape-preview-title" className="text-base font-semibold text-gray-900 sm:text-lg">
+            {shape.label}
+          </h3>
+          <p className="mt-0.5 text-sm text-gray-500">
+            {shape.description} · {shape.braces}
+          </p>
         </div>
-        <div className="min-h-0 flex-1 overflow-auto bg-gradient-to-b from-gray-50 to-gray-100/80 p-4 sm:p-6">
-          <div className="mx-auto flex max-h-[min(70vh,720px)] items-center justify-center">
-            <ShapeImage
-              src={shape.image}
-              alt={`Powiększony widok: ${shape.label}`}
-              className="max-h-full w-full max-w-full object-contain"
-              priority
-            />
-          </div>
+        <div className="flex min-h-0 flex-1 items-start justify-center rounded-2xl bg-white/10 p-3 sm:p-4">
+          <ShapeImage
+            src={shape.image}
+            alt={`Powiększony widok: ${shape.label}`}
+            className="max-h-[min(72vh,800px)] w-full object-contain"
+            priority
+          />
         </div>
       </div>
     </div>,
@@ -145,54 +154,72 @@ function ShapePreviewModal({ shape, onClose }) {
 function ShapeOptionCard({ shape: s, selected, onShapeChange, onOpenPreview }) {
   const select = () => onShapeChange(s.id)
 
+  const openPreview = e => {
+    e.preventDefault()
+    e.stopPropagation()
+    onOpenPreview(s)
+  }
+
   return (
     <div
-      role="button"
-      tabIndex={0}
-      aria-pressed={selected}
-      aria-label={`Wybierz kształt: ${s.label}`}
-      onClick={select}
-      onKeyDown={e => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
-          select()
-        }
-      }}
       className={`
-        w-full border-2 rounded-xl p-4 text-left transition-all hover:shadow-md cursor-pointer outline-none
+        w-full border-2 rounded-xl p-4 text-left outline-none transition-all hover:shadow-md
         focus-visible:ring-2 focus-visible:ring-kramer-green focus-visible:ring-offset-2
         ${selected
           ? 'border-kramer-green bg-kramer-green-light shadow-md'
           : 'border-gray-200 bg-white hover:border-gray-300'
         }
       `}
+      tabIndex={0}
+      role="group"
+      aria-label={`Karta kształtu: ${s.label}`}
+      onKeyDown={e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          if (e.target.closest('[data-loupe]')) return
+          e.preventDefault()
+          select()
+        }
+      }}
     >
       <div className="relative mb-3 h-36 overflow-hidden rounded-lg bg-gray-50 sm:h-40">
         <ShapeImage
           src={s.image}
           alt=""
-          className="h-full w-full object-contain pointer-events-none"
+          className="relative z-0 h-full w-full object-contain pointer-events-none"
         />
         <div
-          className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent pointer-events-none rounded-lg"
+          className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-t from-black/5 to-transparent rounded-lg"
           aria-hidden
         />
+        {/* Warstwa wyboru kształtu — pod lupą */}
         <button
           type="button"
-          className="absolute right-2 top-2 z-10 flex h-9 w-9 items-center justify-center rounded-lg border border-white/80 bg-white/95 text-kramer-green shadow-md transition hover:bg-kramer-green hover:text-white hover:border-kramer-green focus:outline-none focus:ring-2 focus:ring-kramer-green focus:ring-offset-2"
+          className="absolute inset-0 z-[2] cursor-pointer rounded-lg border-0 bg-transparent p-0 text-left"
+          aria-label={`Wybierz kształt: ${s.label}`}
+          onClick={select}
+        />
+        {/* Lupa zawsze nad warstwą wyboru — duży cel dotykowy (min. 44px) */}
+        <button
+          type="button"
+          data-loupe
+          className="absolute right-1 top-1 z-[3] flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg border border-white/90 bg-white text-kramer-green shadow-md touch-manipulation [-webkit-tap-highlight-color:transparent] sm:right-2 sm:top-2 sm:min-h-0 sm:min-w-0 sm:h-9 sm:w-9"
           aria-label={`Powiększ podgląd: ${s.label}`}
-          onClick={e => {
-            e.stopPropagation()
-            onOpenPreview(s)
-          }}
+          onClick={openPreview}
+          onPointerDown={e => e.stopPropagation()}
         >
-          <ZoomInIcon className="h-5 w-5" />
+          <ZoomInIcon className="h-6 w-6 sm:h-5 sm:w-5" />
         </button>
       </div>
-      <div className="font-semibold text-gray-800">{s.label}</div>
-      <div className="text-sm text-gray-500">
-        {s.description} · {s.braces}
-      </div>
+      <button
+        type="button"
+        className="w-full border-0 bg-transparent p-0 text-left"
+        onClick={select}
+      >
+        <span className="block font-semibold text-gray-800">{s.label}</span>
+        <span className="mt-0.5 block text-sm text-gray-500">
+          {s.description} · {s.braces}
+        </span>
+      </button>
     </div>
   )
 }
@@ -208,7 +235,7 @@ export default function Step1Shape({ shape, onShapeChange, onNext }) {
         <span className="inline-flex h-5 w-5 align-middle items-center justify-center rounded border border-gray-200 bg-white text-kramer-green mx-0.5">
           <ZoomInIcon className="h-3 w-3" />
         </span>{' '}
-        w rogu grafiki otwiera większy podgląd.
+        w rogu grafiki otwiera większy podgląd (na telefonie stuknij ikonę).
       </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6 sm:pt-8">

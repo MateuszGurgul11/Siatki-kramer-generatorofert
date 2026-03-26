@@ -1,0 +1,41 @@
+<!--
+  WordPress: wklej w bloku „Niestandardowy HTML” (Custom HTML).
+  Jeśli edytor usuwa <script>, załaduj iframe-resizer w motywie (footer.php)
+  albo wtyczce „Insert Headers and Footers” i zostaw sam <iframe> + init w osobnym pliku.
+
+  ZMIEŃ adres w src= oraz w checkOrigin na swój URL (Vercel).
+-->
+
+<div class="kramer-generator-wrap" style="max-width:100%;">
+  <iframe
+    id="kramer-generator-iframe"
+    src="https://siatki-kramer-generatorofert.vercel.app/"
+    title="Generator ofert Siatki Kramer"
+    width="100%"
+    scrolling="no"
+    style="border:0; width:100%; display:block; min-height:400px;"
+    loading="lazy"
+  ></iframe>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/iframe-resizer@4.3.9/js/iframeResizer.min.js"></script>
+<script>
+  (function () {
+    var sel = '#kramer-generator-iframe'
+    function init() {
+      if (typeof iFrameResize !== 'function') return
+      iFrameResize(
+        {
+          log: false,
+          checkOrigin: ['https://siatki-kramer-generatorofert.vercel.app'],
+        },
+        sel
+      )
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init)
+    } else {
+      init()
+    }
+  })()
+</script>
