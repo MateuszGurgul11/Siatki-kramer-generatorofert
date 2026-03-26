@@ -1,9 +1,9 @@
 const SHAPE_NAMES = { line: 'Linia prosta', L: 'Kształt L', U: 'Kształt U', closed: 'Zamknięty' }
 const WALL_LABELS = {
-  line: ['Ściana'],
-  L: ['Ściana lewa (pionowa)', 'Ściana dolna (pozioma)'],
-  U: ['Ściana lewa', 'Ściana dolna', 'Ściana prawa'],
-  closed: ['Ściana lewa', 'Ściana dolna', 'Ściana prawa', 'Ściana górna'],
+  line: ['A1/A2'],
+  L: ['A1', 'A3'],
+  U: ['A1', 'A3', 'A2'],
+  closed: ['A1', 'A3', 'A2', 'A4'],
 }
 
 const HEIGHTS = [4, 5, 6]

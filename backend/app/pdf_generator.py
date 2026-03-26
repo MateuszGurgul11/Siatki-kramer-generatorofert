@@ -1,6 +1,7 @@
 import os
 from datetime import datetime
 from pathlib import Path
+from xml.sax.saxutils import escape
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import mm
@@ -41,10 +42,10 @@ MID_GRAY = colors.HexColor("#666666")
 LIGHT_GRAY = colors.HexColor("#f5f5f5")
 WHITE = colors.white
 
-COMPANY_ADDRESS = os.getenv("COMPANY_ADDRESS", "ul. Przykładowa 1, 00-000 Warszawa")
-COMPANY_NIP = os.getenv("COMPANY_NIP", "000-000-00-00")
-COMPANY_PHONE = os.getenv("COMPANY_PHONE", "+48 000 000 000")
-COMPANY_EMAIL = os.getenv("COMPANY_EMAIL", "biuro@siatki-kramer.pl")
+COMPANY_ADDRESS = os.getenv("COMPANY_ADDRESS", "ul. Szkolna 20 62-001 Chludowo k. Poznania")
+COMPANY_NIP = os.getenv("COMPANY_NIP", "766-178-66-79")
+COMPANY_PHONE = os.getenv("COMPANY_PHONE", "+48 604 127 881")
+COMPANY_EMAIL = os.getenv("COMPANY_EMAIL", "sklep@siatki-kramer.pl")
 COMPANY_WEBSITE = os.getenv("COMPANY_WEBSITE", "https://sklep.siatki-kramer.pl")
 
 # Ścieżka do pliku logotypu (wstawiany ręcznie)
@@ -53,19 +54,46 @@ LOGO_PATH = os.getenv("LOGO_PATH", str(Path(__file__).parent.parent / "assets" /
 VAT_RATE = 0.23
 
 
-def _logo_or_placeholder(width_mm: float, height_mm: float):
-    """Zwraca obraz logotypu lub placeholder, jeśli plik nie istnieje."""
+def _para_cell(text, style: ParagraphStyle) -> Paragraph:
+    """Komórka tabeli z zawijaniem tekstu; escapuje znaki specjalne dla ReportLab Paragraph."""
+    if text is None:
+        t = "—"
+    else:
+        t = str(text).strip()
+        if not t:
+            t = "—"
+    return Paragraph(escape(t).replace("\n", "<br/>"), style)
+
+
+def _logo_fit_box(max_width_mm: float = 50, max_height_mm: float = 18):
+    """Logotyp jak wcześniej (mały), bez zniekształceń — dopasowanie do prostokąta z zachowaniem proporcji."""
     from reportlab.platypus import Image
-    w = width_mm * mm
-    h = height_mm * mm
+
+    w_max = max_width_mm * mm
+    h_max = max_height_mm * mm
 
     if os.path.exists(LOGO_PATH):
-        img = Image(LOGO_PATH, width=w, height=h)
-        return img
+        try:
+            from reportlab.lib.utils import ImageReader
+            ir = ImageReader(LOGO_PATH)
+            iw, ih = ir.getSize()
+            if iw <= 0:
+                iw, ih = 1, 1
+            # Najpierw skaluj do max szerokości
+            w = w_max
+            h = w_max * (ih / float(iw))
+            # Jeśli za wysoko — zmniejsz proporcjonalnie (jak object-fit: contain)
+            if h > h_max:
+                h = h_max
+                w = h_max * (iw / float(ih))
+        except Exception:
+            w, h = w_max, min(h_max, w_max * 0.36)
+        return Image(LOGO_PATH, width=w, height=h)
 
-    # Placeholder — szary prostokąt z napisem
+    w, h = w_max, min(h_max, w_max * 0.36)
     d = Drawing(w, h)
-    d.add(Rect(0, 0, w, h, fillColor=colors.HexColor("#e0e0e0"), strokeColor=colors.HexColor("#aaaaaa"), strokeWidth=1))
+    d.add(Rect(0, 0, w, h, fillColor=colors.HexColor("#e0e0e0"),
+             strokeColor=colors.HexColor("#aaaaaa"), strokeWidth=1))
     d.add(String(w / 2, h / 2 - 4, "[ LOGO FIRMY ]",
                  fontName="DV", fontSize=9, fillColor=MID_GRAY,
                  textAnchor="middle"))
@@ -109,7 +137,18 @@ def generate_pdf(
     )
     item_cell_style = ParagraphStyle(
         "ItemCell", fontName="DV", fontSize=8,
-        textColor=DARK_GRAY, leading=10, spaceAfter=0, spaceBefore=0,
+        textColor=DARK_GRAY, leading=11, spaceAfter=0, spaceBefore=0,
+        alignment=TA_LEFT,
+    )
+    item_cell_center_style = ParagraphStyle(
+        "ItemCellC", fontName="DV", fontSize=8,
+        textColor=DARK_GRAY, leading=11, spaceAfter=0, spaceBefore=0,
+        alignment=TA_CENTER,
+    )
+    item_cell_right_style = ParagraphStyle(
+        "ItemCellR", fontName="DV", fontSize=8,
+        textColor=DARK_GRAY, leading=11, spaceAfter=0, spaceBefore=0,
+        alignment=TA_RIGHT,
     )
     summary_label_style = ParagraphStyle(
         "SumLabel", fontName="DV", fontSize=9,
@@ -124,7 +163,7 @@ def generate_pdf(
     date_str = datetime.now().strftime("%d.%m.%Y")
 
     # ── NAGŁÓWEK ────────────────────────────────────────────────
-    logo_element = _logo_or_placeholder(50, 18)
+    logo_element = _logo_fit_box(50, 18)
 
     right_paragraphs = [
         Paragraph("Informacja cenowa",
@@ -150,6 +189,13 @@ def generate_pdf(
         ("BOTTOMPADDING", (0, 0), (-1, -1), 1),
     ]))
 
+    right_col = Table([[p] for p in right_paragraphs], colWidths=[80 * mm])
+    right_col.setStyle(TableStyle([
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("TOPPADDING", (0, 0), (-1, -1), 2),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+    ]))
+
     left_col = Table(
         [[logo_element], [company_info]],
         colWidths=[95 * mm],
@@ -157,14 +203,9 @@ def generate_pdf(
     left_col.setStyle(TableStyle([
         ("VALIGN", (0, 0), (-1, -1), "TOP"),
         ("TOPPADDING", (0, 0), (-1, -1), 0),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-    ]))
-
-    right_col = Table([[p] for p in right_paragraphs], colWidths=[80 * mm])
-    right_col.setStyle(TableStyle([
-        ("VALIGN", (0, 0), (-1, -1), "TOP"),
-        ("TOPPADDING", (0, 0), (-1, -1), 2),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+        ("BOTTOMPADDING", (0, 0), (0, 0), 7 * mm),
+        ("TOPPADDING", (0, 1), (0, 1), 0),
+        ("BOTTOMPADDING", (0, 1), (0, 1), 4),
     ]))
 
     header_table = Table([[left_col, right_col]], colWidths=[100 * mm, 80 * mm])
@@ -215,26 +256,27 @@ def generate_pdf(
         unit_brutto = item.unit_price_netto * (1 + VAT_RATE)
         val_brutto = item.value_netto * (1 + VAT_RATE)
         table_data.append([
-            str(i),
-            Paragraph(item.name, item_cell_style),
-            f"{item.height:.0f}" if item.height else "—",
-            item.quantity_desc or "—",
-            f"{item.area:.2f}" if item.area else "—",
-            f"{unit_brutto:.2f} zł",
-            f"{val_brutto:.2f} zł",
+            _para_cell(str(i), item_cell_center_style),
+            _para_cell(item.name, item_cell_style),
+            _para_cell(f"{item.height:.0f}" if item.height else "—", item_cell_center_style),
+            _para_cell(item.quantity_desc or "—", item_cell_style),
+            _para_cell(f"{item.area:.2f}" if item.area else "—", item_cell_right_style),
+            _para_cell(f"{unit_brutto:.2f} zł", item_cell_right_style),
+            _para_cell(f"{val_brutto:.2f} zł", item_cell_right_style),
         ])
 
     table_data.append(["", "", "", "", "",
                         Paragraph("Razem netto:", summary_label_style),
-                        f"{result.total_netto:.2f} zł"])
+                        _para_cell(f"{result.total_netto:.2f} zł", item_cell_right_style)])
     table_data.append(["", "", "", "", "",
                         Paragraph("VAT 23%:", summary_label_style),
-                        f"{result.vat:.2f} zł"])
+                        _para_cell(f"{result.vat:.2f} zł", item_cell_right_style)])
     table_data.append(["", "", "", "", "",
                         Paragraph("Razem brutto:", summary_total_style),
-                        f"{result.total_brutto:.2f} zł"])
+                        _para_cell(f"{result.total_brutto:.2f} zł", item_cell_right_style)])
 
-    col_widths = [8 * mm, 65 * mm, 12 * mm, 28 * mm, 16 * mm, 24 * mm, 24 * mm]
+    # Szerokości: szersza kolumna „Ilość” (długie opisy), nazwa może się zawijać
+    col_widths = [8 * mm, 52 * mm, 12 * mm, 42 * mm, 15 * mm, 23 * mm, 23 * mm]
     n = len(result.items)
 
     it = Table(table_data, colWidths=col_widths, repeatRows=1)
@@ -252,7 +294,7 @@ def generate_pdf(
         ("FONTNAME", (0, 1), (-1, n), "DV"),
         ("FONTSIZE", (0, 1), (-1, n), 8),
         ("TEXTCOLOR", (0, 1), (-1, n), DARK_GRAY),
-        ("VALIGN", (0, 1), (-1, -1), "MIDDLE"),
+        ("VALIGN", (0, 1), (-1, n), "TOP"),
         ("TOPPADDING", (0, 1), (-1, n), 4),
         ("BOTTOMPADDING", (0, 1), (-1, n), 4),
         ("ROWBACKGROUNDS", (0, 1), (-1, n), [WHITE, LIGHT_GRAY]),
