@@ -15,13 +15,14 @@ services:
       - key: PDF_DIR
         value: /tmp/pdfs
       - key: COMPANY_ADDRESS
-        value: "ul. Przykładowa 1, 00-000 Warszawa"
+        value: "ul. Szkolna 20
+62-001 Chludowo k. Poznania"
       - key: COMPANY_NIP
-        value: "000-000-00-00"
+        value: "766-178-66-79"
       - key: COMPANY_PHONE
-        value: "+48 000 000 000"
+        value: "+48 604 127 881"
       - key: COMPANY_EMAIL
-        value: "biuro@siatki-kramer.pl"
+        value: "sklep@siatki-kramer.pl"
       - key: COMPANY_WEBSITE
         value: "https://sklep.siatki-kramer.pl"
       - key: COMPANY_NAME
