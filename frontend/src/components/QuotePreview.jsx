@@ -39,10 +39,17 @@ export default function QuotePreview({ result, loading, nets, netId }) {
           {/* Items */}
           <div className="space-y-1 mb-4">
             {result.items.map((item, i) => (
-              <div key={i} className="flex justify-between text-xs py-1.5 border-b border-gray-100 last:border-0">
-                <span className="text-gray-600 flex-1 pr-2 leading-tight">{item.name}</span>
+              <div key={i} className="flex justify-between text-xs py-1.5 border-b border-gray-100 last:border-0 gap-3">
+                <span className="text-gray-600 flex-1 pr-2 leading-tight">
+                  {item.name}
+                  {item.unit === 'info' && item.quantity_desc ? (
+                    <span className="block mt-0.5 text-[11px] text-gray-500 leading-snug">{item.quantity_desc}</span>
+                  ) : null}
+                </span>
                 <span className="font-medium text-gray-800 whitespace-nowrap">
-                  {(item.value_netto * 1.23).toFixed(2)} zł
+                  {item.unit === 'info'
+                    ? '—'
+                    : `${(item.value_brutto ?? (item.value_netto * 1.23)).toFixed(2)} zł`}
                 </span>
               </div>
             ))}
@@ -50,14 +57,6 @@ export default function QuotePreview({ result, loading, nets, netId }) {
 
           {/* Summary */}
           <div className="bg-gray-50 rounded-lg p-3 space-y-1">
-            <div className="flex justify-between text-xs text-gray-500">
-              <span>Netto</span>
-              <span>{result.total_netto.toFixed(2)} zł</span>
-            </div>
-            <div className="flex justify-between text-xs text-gray-500">
-              <span>VAT 23%</span>
-              <span>{result.vat.toFixed(2)} zł</span>
-            </div>
             <div className="flex justify-between font-bold text-kramer-green border-t border-gray-200 pt-2 mt-1 text-sm">
               <span>Razem brutto</span>
               <span>{result.total_brutto.toFixed(2)} zł</span>

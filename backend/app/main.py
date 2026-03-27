@@ -14,7 +14,6 @@ from .models import CalculationRequest, OfferRequest, CalculationResult
 from .calculator import calculate
 from .database import init_db, get_next_offer_number, save_offer
 from .pdf_generator import generate_pdf
-from .email_service import send_offer_email
 from .nets import get_all_nets
 
 app = FastAPI(
@@ -75,7 +74,7 @@ def calculate_endpoint(request: CalculationRequest):
 
 @app.post("/api/generate-offer")
 def generate_offer(request: OfferRequest):
-    """Generuje ofertę PDF, zapisuje do bazy i wysyła e-mail."""
+    """Generuje ofertę PDF i zapisuje ją w bazie."""
     try:
         # 1. Oblicz
         result = calculate(request.calculation)
@@ -101,19 +100,9 @@ def generate_offer(request: OfferRequest):
             pdf_path=pdf_path,
         )
 
-        # 5. Wyślij e-mail
-        email_sent = send_offer_email(
-            recipient_email=request.customer.email,
-            recipient_name=request.customer.name,
-            offer_number=offer_number,
-            total_brutto=result.total_brutto,
-            pdf_path=pdf_path,
-        )
-
         return {
             "offer_number": offer_number,
             "pdf_url": f"/api/offers/{offer_number}/pdf",
-            "email_sent": email_sent,
             "total_brutto": result.total_brutto,
         }
     except Exception as e:

@@ -27,10 +27,3 @@ services:
         value: "https://sklep.siatki-kramer.pl"
       - key: COMPANY_NAME
         value: "Siatki Kramer"
-      - key: SENDER_NAME
-        value: "Siatki Kramer"
-      # E-mail — wpisz ręcznie w dashboardzie Render (Settings → Environment)
-      # - key: SMTP_HOST
-      # - key: SMTP_PORT
-      # - key: SMTP_USER
-      # - key: SMTP_PASSWORD

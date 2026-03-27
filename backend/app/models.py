@@ -1,5 +1,5 @@
 from pydantic import BaseModel, model_validator
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Literal
 from enum import Enum
 
 
@@ -36,6 +36,10 @@ class Wall(BaseModel):
 class CalculationRequest(BaseModel):
     shape: ShapeType
     walls: List[Wall]
+    walls_secondary: Optional[List[Wall]] = None
+    net_layers: Literal[1, 2] = 1
+    edge_finishing: bool = False
+    include_mounting_kit: bool = False
     mounting: MountingType
     net_id: str
     quote_type: QuoteType
@@ -47,12 +51,23 @@ class CalculationRequest(BaseModel):
             raise ValueError(
                 f"Liczba ścian ({len(self.walls)}) nie odpowiada kształtowi (wymagane: {expected})."
             )
+        if self.net_layers == 2 and self.shape not in {ShapeType.LINE, ShapeType.L}:
+            raise ValueError("Opcja dwóch siatek jest dostępna tylko dla kształtów: linia prosta i L.")
+        if self.net_layers == 2:
+            if not self.walls_secondary:
+                raise ValueError("Dla opcji dwóch siatek wymagane są wymiary drugiej siatki.")
+            if len(self.walls_secondary) != expected:
+                raise ValueError(
+                    f"Liczba ścian drugiej siatki ({len(self.walls_secondary)}) nie odpowiada kształtowi (wymagane: {expected})."
+                )
+        if self.net_layers == 1:
+            self.walls_secondary = None
         return self
 
 
 class CustomerData(BaseModel):
     name: str
-    email: str
+    email: Optional[str] = None
     phone: Optional[str] = None
     address: Optional[str] = None
 
@@ -69,6 +84,8 @@ class LineItem(BaseModel):
     area: Optional[float] = None
     unit_price_netto: float
     value_netto: float
+    unit_price_brutto: Optional[float] = None
+    value_brutto: Optional[float] = None
     unit: str = "szt."
 
 

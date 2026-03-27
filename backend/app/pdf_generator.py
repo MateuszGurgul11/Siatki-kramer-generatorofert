@@ -253,8 +253,8 @@ def generate_pdf(
     ]]
 
     for i, item in enumerate(result.items, 1):
-        unit_brutto = item.unit_price_netto * (1 + VAT_RATE)
-        val_brutto = item.value_netto * (1 + VAT_RATE)
+        unit_brutto = item.unit_price_brutto if item.unit_price_brutto is not None else item.unit_price_netto * (1 + VAT_RATE)
+        val_brutto = item.value_brutto if item.value_brutto is not None else item.value_netto * (1 + VAT_RATE)
         table_data.append([
             _para_cell(str(i), item_cell_center_style),
             _para_cell(item.name, item_cell_style),
@@ -325,7 +325,7 @@ def generate_pdf(
     story.append(HRFlowable(width="100%", thickness=0.5, color=colors.HexColor("#cccccc")))
     story.append(Paragraph(
         "Wycena jest orientacyjna i nie stanowi oferty w rozumieniu przepisów prawa. "
-        "Wycena nie obejmuje kosztów montażu oraz dostawy. "
+        "Wycena nie obejmuje kosztów montażu. "
         f"Oferta wygenerowana przez system Siatki Kramer dnia {date_str}.",
         disclaimer_style,
     ))

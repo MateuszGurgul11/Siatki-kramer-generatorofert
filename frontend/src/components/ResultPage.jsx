@@ -25,21 +25,17 @@ export default function ResultPage({ offerResult, customer, onReset }) {
               <span className="text-gray-600">Wartość brutto:</span>
               <span className="text-2xl font-bold text-kramer-green">{offerResult.total_brutto?.toFixed(2)} zł</span>
             </div>
-            <div className="flex justify-between text-sm text-gray-500">
-              <span>Adres e-mail:</span>
-              <span>{customer.email}</span>
-            </div>
+            {customer.email && (
+              <div className="flex justify-between text-sm text-gray-500">
+                <span>Adres e-mail:</span>
+                <span>{customer.email}</span>
+              </div>
+            )}
           </div>
 
-          {offerResult.email_sent ? (
-            <p className="text-sm text-green-700 mb-6 bg-green-50 rounded-lg p-3">
-              ✓ Oferta została wysłana na adres e-mail {customer.email}
-            </p>
-          ) : (
-            <p className="text-sm text-orange-700 mb-6 bg-orange-50 rounded-lg p-3">
-              ⚠ Nie udało się wysłać e-maila — pobierz PDF ręcznie poniżej
-            </p>
-          )}
+          <p className="text-sm text-gray-600 mb-6 bg-gray-50 rounded-lg p-3">
+            Oferta została wygenerowana. Pobierz PDF poniżej.
+          </p>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <a

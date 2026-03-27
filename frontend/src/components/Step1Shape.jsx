@@ -77,7 +77,7 @@ function CloseIcon({ className }) {
   )
 }
 
-/** Modal: X przyklejony do rogu ekranu (fixed + safe-area), treść przewijalna — działa na telefonie w iframe. */
+/** Modal z przyciskiem zamknięcia w białym banerze (po prawej). */
 function ShapePreviewModal({ shape, onClose }) {
   useEffect(() => {
     const prev = document.body.style.overflow
@@ -105,7 +105,7 @@ function ShapePreviewModal({ shape, onClose }) {
       aria-modal="true"
       aria-labelledby="shape-preview-title"
     >
-      {/* Zamknięcie tłem — poniżej przycisku X (niższy z-index) */}
+      {/* Zamknięcie tłem */}
       <button
         type="button"
         className="absolute inset-0 z-0 cursor-default"
@@ -113,29 +113,26 @@ function ShapePreviewModal({ shape, onClose }) {
         onClick={onClose}
       />
 
-      {/* X zawsze widoczny w rogu — fixed, nie przewija się z treścią */}
-      <button
-        type="button"
-        onClick={onClose}
-        className="fixed z-[10001] flex h-12 w-12 items-center justify-center rounded-full border border-white/30 bg-white text-gray-800 shadow-lg transition active:scale-95 sm:h-11 sm:w-11"
-        style={{
-          top: 'max(0.75rem, env(safe-area-inset-top, 0px))',
-          right: 'max(0.75rem, env(safe-area-inset-right, 0px))',
-        }}
-        aria-label="Zamknij"
-      >
-        <CloseIcon className="h-6 w-6 sm:h-5 sm:w-5" />
-      </button>
-
-      {/* Przewijalna treść — pod spodem, z paddingiem od „góry” pod X */}
-      <div className="relative z-[10000] mx-auto flex w-full max-w-4xl flex-1 flex-col overflow-y-auto overscroll-contain px-4 pb-8 pt-[4.25rem] sm:px-6 sm:pb-10 sm:pt-16">
+      <div className="relative z-[10000] mx-auto flex w-full max-w-4xl flex-1 flex-col overflow-y-auto overscroll-contain px-4 pb-8 pt-4 sm:px-6 sm:pb-10 sm:pt-6">
         <div className="mb-4 shrink-0 rounded-2xl bg-white/95 px-4 py-3 shadow-sm ring-1 ring-black/5 sm:px-5">
-          <h3 id="shape-preview-title" className="text-base font-semibold text-gray-900 sm:text-lg">
-            {shape.label}
-          </h3>
-          <p className="mt-0.5 text-sm text-gray-500">
-            {shape.description} · {shape.braces}
-          </p>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 id="shape-preview-title" className="text-base font-semibold text-gray-900 sm:text-lg">
+                {shape.label}
+              </h3>
+              <p className="mt-0.5 text-sm text-gray-500">
+                {shape.description} · {shape.braces}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-700 shadow-sm transition hover:bg-gray-100 hover:text-gray-900"
+              aria-label="Zamknij"
+            >
+              <CloseIcon className="h-5 w-5" />
+            </button>
+          </div>
         </div>
         <div className="flex min-h-0 flex-1 items-start justify-center rounded-2xl bg-white/10 p-3 sm:p-4">
           <ShapeImage

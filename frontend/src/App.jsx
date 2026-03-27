@@ -32,6 +32,10 @@ export default function App() {
   // Form state
   const [shape, setShape] = useState('line')
   const [walls, setWalls] = useState([defaultWall()])
+  const [wallsSecondary, setWallsSecondary] = useState([defaultWall()])
+  const [netLayers, setNetLayers] = useState(1)
+  const [edgeFinishing, setEdgeFinishing] = useState(false)
+  const [includeMountingKit, setIncludeMountingKit] = useState(false)
   const [mounting, setMounting] = useState('concrete')
   const [netId, setNetId] = useState('')
   const [quoteType, setQuoteType] = useState('complete')
@@ -55,6 +59,17 @@ export default function App() {
       }
       return prev.slice(0, count)
     })
+    setWallsSecondary(prev => {
+      if (prev.length === count) return prev
+      if (prev.length < count) {
+        const last = prev[prev.length - 1] || defaultWall()
+        return [...prev, ...Array(count - prev.length).fill(null).map(() => defaultWall(last.height))]
+      }
+      return prev.slice(0, count)
+    })
+    if (!['line', 'L'].includes(shape)) {
+      setNetLayers(1)
+    }
   }, [shape])
 
   // Live calculation
@@ -65,11 +80,18 @@ export default function App() {
     const wallsForCalc = walls.slice(0, wallCount)
     const allValid = wallsForCalc.every(w => w.length >= 3 && w.height > 0)
     if (!allValid) return
+    const secondaryForCalc = wallsSecondary.slice(0, wallCount)
+    const secondaryValid = secondaryForCalc.every(w => w.length >= 3 && w.height > 0)
+    if (netLayers === 2 && !secondaryValid) return
     setCalcLoading(true)
     try {
       const res = await calculateQuote({
         shape,
         walls: wallsForCalc,
+        walls_secondary: netLayers === 2 ? secondaryForCalc : undefined,
+        net_layers: netLayers,
+        edge_finishing: edgeFinishing,
+        include_mounting_kit: includeMountingKit,
         mounting,
         net_id: netId,
         quote_type: quoteType,
@@ -80,7 +102,7 @@ export default function App() {
     } finally {
       setCalcLoading(false)
     }
-  }, [shape, walls, mounting, netId, quoteType])
+  }, [shape, walls, wallsSecondary, netLayers, edgeFinishing, includeMountingKit, mounting, netId, quoteType])
 
   useEffect(() => {
     const timeout = setTimeout(runCalculation, 400)
@@ -110,8 +132,8 @@ export default function App() {
   }, [])
 
   const handleGenerateOffer = async () => {
-    if (!customer.name || !customer.email) {
-      setError('Wypełnij imię/nazwę i adres e-mail')
+    if (!customer.name) {
+      setError('Wypełnij imię i nazwisko / nazwę firmy')
       return
     }
     setLoading(true)
@@ -119,8 +141,19 @@ export default function App() {
     try {
       const wallCount = SHAPE_WALLS[shape]
       const wallsForCalc = walls.slice(0, wallCount)
+      const secondaryForCalc = wallsSecondary.slice(0, wallCount)
       const res = await generateOffer({
-        calculation: { shape, walls: wallsForCalc, mounting, net_id: netId, quote_type: quoteType },
+        calculation: {
+          shape,
+          walls: wallsForCalc,
+          walls_secondary: netLayers === 2 ? secondaryForCalc : undefined,
+          net_layers: netLayers,
+          edge_finishing: edgeFinishing,
+          include_mounting_kit: includeMountingKit,
+          mounting,
+          net_id: netId,
+          quote_type: quoteType,
+        },
         customer,
       })
       setOfferResult(res)
@@ -155,6 +188,14 @@ export default function App() {
                 shape={shape}
                 walls={walls}
                 onWallsChange={setWalls}
+                netLayers={netLayers}
+                onNetLayersChange={setNetLayers}
+                edgeFinishing={edgeFinishing}
+                onEdgeFinishingChange={setEdgeFinishing}
+                includeMountingKit={includeMountingKit}
+                onIncludeMountingKitChange={setIncludeMountingKit}
+                wallsSecondary={wallsSecondary}
+                onWallsSecondaryChange={setWallsSecondary}
                 onBack={() => setStep(1)}
                 onNext={() => setStep(3)}
               />

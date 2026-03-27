@@ -1,12 +1,12 @@
 export default function Step4Customer({ customer, onCustomerChange, onBack, onSubmit, loading, error }) {
   const update = (field, value) => onCustomerChange({ ...customer, [field]: value })
-  const isValid = customer.name.trim() && customer.email.trim()
+  const isValid = customer.name.trim()
 
   return (
     <div className="card">
       <h2 className="text-xl font-bold text-gray-800 mb-1">Krok 4: Dane kontaktowe</h2>
       <p className="text-gray-500 text-sm mb-6">
-        Oferta zostanie wysłana na podany adres e-mail
+        Uzupełnij dane do przygotowania oferty
       </p>
 
       <div className="space-y-4">
@@ -21,7 +21,7 @@ export default function Step4Customer({ customer, onCustomerChange, onBack, onSu
           />
         </div>
         <div>
-          <label className="label">Adres e-mail *</label>
+          <label className="label">Adres e-mail (opcjonalnie)</label>
           <input
             type="email"
             value={customer.email}
@@ -59,7 +59,7 @@ export default function Step4Customer({ customer, onCustomerChange, onBack, onSu
       )}
 
       <p className="mt-4 text-xs text-gray-400">
-        * Pola wymagane. Dane służą wyłącznie do wystawienia oferty.
+        * Wymagane jest tylko imię i nazwisko / nazwa firmy.
       </p>
 
       <div className="mt-6 flex justify-between">
