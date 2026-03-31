@@ -13,6 +13,14 @@ const SECOND_NET_LABELS = {
 
 const HEIGHTS = [4, 5, 6]
 
+function calcPoles(length) {
+  if (length <= 3) return 2
+  if (length <= 6) return 3
+  const middle = length - 6
+  const nSpans = Math.ceil(middle / 5.5)
+  return 4 + Math.max(0, nSpans - 1)
+}
+
 function WallsForm({ walls, labels, title, onWallsChange }) {
   const updateWall = (idx, field, value) => {
     const updated = walls.map((w, i) =>
@@ -26,9 +34,14 @@ function WallsForm({ walls, labels, title, onWallsChange }) {
       {title && <h3 className="font-semibold text-gray-700">{title}</h3>}
       {walls.map((wall, idx) => (
         <div key={idx} className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-          <h4 className="font-semibold text-kramer-green mb-4">
-            {labels[idx] || `Ściana ${idx + 1}`}
-          </h4>
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="font-semibold text-kramer-green">
+              {labels[idx] || `Ściana ${idx + 1}`}
+            </h4>
+            <span className="text-sm text-gray-500">
+              Ilość słupów: <span className="font-semibold text-gray-700">{wall.length >= 3 ? calcPoles(wall.length) : '—'}</span>
+            </span>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="label">Długość [m]</label>
@@ -75,10 +88,6 @@ export default function Step2Walls({
   onWallsChange,
   netLayers,
   onNetLayersChange,
-  edgeFinishing,
-  onEdgeFinishingChange,
-  includeMountingKit,
-  onIncludeMountingKitChange,
   wallsSecondary,
   onWallsSecondaryChange,
   onBack,
@@ -100,7 +109,7 @@ export default function Step2Walls({
 
       {supportsTwoNets && (
         <div className="mb-6">
-          <h3 className="font-semibold text-gray-700 mb-3">Liczba siatek</h3>
+          <h3 className="font-semibold text-gray-700 mb-3">Liczba piłkochwytów</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button
               type="button"
@@ -121,34 +130,6 @@ export default function Step2Walls({
           </div>
         </div>
       )}
-
-      <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <label className="flex items-start gap-3 p-4 border border-gray-200 rounded-xl bg-white cursor-pointer">
-          <input
-            type="checkbox"
-            checked={edgeFinishing}
-            onChange={e => onEdgeFinishingChange(e.target.checked)}
-            className="mt-1 h-4 w-4 accent-kramer-green"
-          />
-          <span>
-            <span className="block font-semibold text-gray-800">Obszycie na brzegach</span>
-            <span className="block text-sm text-gray-500">Dodaj informację o obszyciu krawędzi siatki.</span>
-          </span>
-        </label>
-
-        <label className="flex items-start gap-3 p-4 border border-gray-200 rounded-xl bg-white cursor-pointer">
-          <input
-            type="checkbox"
-            checked={includeMountingKit}
-            onChange={e => onIncludeMountingKitChange(e.target.checked)}
-            className="mt-1 h-4 w-4 accent-kramer-green"
-          />
-          <span>
-            <span className="block font-semibold text-gray-800">Doliczyć zestaw montażowy</span>
-            <span className="block text-sm text-gray-500">Linka, śruby oczkowe, karabińczyki i komplet śrub rzymskich.</span>
-          </span>
-        </label>
-      </div>
 
       <WallsForm
         walls={walls}

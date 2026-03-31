@@ -19,10 +19,17 @@ function parseNetOption(net) {
 }
 
 export default function Step3Options({
-  mounting, onMountingChange,
-  nets, netId, onNetChange,
-  quoteType, onQuoteTypeChange,
-  onBack, onNext,
+  mounting,
+  onMountingChange,
+  nets,
+  netId,
+  onNetChange,
+  quoteType,
+  onQuoteTypeChange,
+  includeMountingKit,
+  onIncludeMountingKitChange,
+  onBack,
+  onNext,
 }) {
   const parsed = useMemo(() => nets.map(parseNetOption), [nets])
   const groups = useMemo(() => {
@@ -53,28 +60,26 @@ export default function Step3Options({
     <div className="card space-y-8">
       <div>
         <h2 className="text-xl font-bold text-gray-800 mb-1">Krok 3: Opcje</h2>
-        <p className="text-gray-500 text-sm">Wybierz montaż, siatkę i zakres wyceny</p>
+        <p className="text-gray-500 text-sm">Wybierz zakres wyceny, siatkę i dodatki</p>
       </div>
 
-      {/* Montaż słupów */}
+      {/* Zakres wyceny */}
       <div>
-        <h3 className="font-semibold text-gray-700 mb-3">Opcja montażu słupów</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <h3 className="font-semibold text-gray-700 mb-3">Zakres wyceny</h3>
+        <div className="space-y-2">
           <button
-            onClick={() => onMountingChange('concrete')}
-            className={`p-4 border-2 rounded-xl text-left transition-all ${mounting === 'concrete' ? 'border-kramer-green bg-kramer-green-light' : 'border-gray-200 hover:border-gray-300'}`}
+            onClick={() => onQuoteTypeChange('complete')}
+            className={`w-full p-4 border-2 rounded-xl text-left transition-all ${quoteType === 'complete' ? 'border-kramer-green bg-kramer-green-light' : 'border-gray-200 hover:border-gray-300'}`}
           >
-            <div className="font-semibold text-gray-800 mb-1">Montaż w betonie</div>
-            <div className="text-sm text-gray-500">Trwały, rekomendowany</div>
-            <div className="text-sm font-medium text-kramer-green mt-1">Bez dopłaty</div>
+            <div className="font-semibold text-gray-800">Kompletna wycena</div>
+            <div className="text-sm text-gray-500 mt-1">Słupy + zastrzały + siatka + akcesoria + transport</div>
           </button>
           <button
-            onClick={() => onMountingChange('sleeve')}
-            className={`p-4 border-2 rounded-xl text-left transition-all ${mounting === 'sleeve' ? 'border-kramer-green bg-kramer-green-light' : 'border-gray-200 hover:border-gray-300'}`}
+            onClick={() => onQuoteTypeChange('net_only')}
+            className={`w-full p-4 border-2 rounded-xl text-left transition-all ${quoteType === 'net_only' ? 'border-kramer-green bg-kramer-green-light' : 'border-gray-200 hover:border-gray-300'}`}
           >
-            <div className="font-semibold text-gray-800 mb-1">Tuleje montażowe</div>
-            <div className="text-sm text-gray-500">Łatwiejszy demontaż</div>
-            <div className="text-sm font-medium text-orange-600 mt-1">+233 zł brutto/szt.</div>
+            <div className="font-semibold text-gray-800">Tylko siatka + akcesoria + dostawa</div>
+            <div className="text-sm text-gray-500 mt-1">Bez słupów i zastrzałów + transport</div>
           </button>
         </div>
       </div>
@@ -134,26 +139,49 @@ export default function Step3Options({
         )}
       </div>
 
-      {/* Zakres wyceny */}
+      {/* Zestaw montażowy */}
       <div>
-        <h3 className="font-semibold text-gray-700 mb-3">Zakres wyceny</h3>
-        <div className="space-y-2">
-          <button
-            onClick={() => onQuoteTypeChange('complete')}
-            className={`w-full p-4 border-2 rounded-xl text-left transition-all ${quoteType === 'complete' ? 'border-kramer-green bg-kramer-green-light' : 'border-gray-200 hover:border-gray-300'}`}
-          >
-            <div className="font-semibold text-gray-800">Kompletna wycena</div>
-            <div className="text-sm text-gray-500 mt-1">Słupy + zastrzały + siatka + akcesoria + transport</div>
-          </button>
-          <button
-            onClick={() => onQuoteTypeChange('net_only')}
-            className={`w-full p-4 border-2 rounded-xl text-left transition-all ${quoteType === 'net_only' ? 'border-kramer-green bg-kramer-green-light' : 'border-gray-200 hover:border-gray-300'}`}
-          >
-            <div className="font-semibold text-gray-800">Tylko siatka + akcesoria + dostawa</div>
-            <div className="text-sm text-gray-500 mt-1">Bez słupów i zastrzałów + transport</div>
-          </button>
-        </div>
+        <h3 className="font-semibold text-gray-700 mb-3">Zestaw montażowy</h3>
+        <label className="flex items-start gap-3 p-4 border border-gray-200 rounded-xl bg-white cursor-pointer">
+          <input
+            type="checkbox"
+            checked={includeMountingKit}
+            onChange={e => onIncludeMountingKitChange(e.target.checked)}
+            className="mt-1 h-4 w-4 accent-kramer-green"
+          />
+          <span>
+            <span className="block font-semibold text-gray-800">Doliczyć zestaw montażowy</span>
+            <span className="block text-sm text-gray-500">
+              Linka stalowa, śruby oczkowe, karabińczyki oraz komplet śrub rzymskich i zacisków.
+            </span>
+          </span>
+        </label>
       </div>
+
+      {/* Opcja montażu słupów — tylko dla kompletnej wyceny */}
+      {quoteType === 'complete' && (
+        <div>
+          <h3 className="font-semibold text-gray-700 mb-3">Opcja montażu słupów</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <button
+              onClick={() => onMountingChange('concrete')}
+              className={`p-4 border-2 rounded-xl text-left transition-all ${mounting === 'concrete' ? 'border-kramer-green bg-kramer-green-light' : 'border-gray-200 hover:border-gray-300'}`}
+            >
+              <div className="font-semibold text-gray-800 mb-1">Montaż w betonie</div>
+              <div className="text-sm text-gray-500">Trwały, rekomendowany</div>
+              <div className="text-sm font-medium text-kramer-green mt-1">Bez dopłaty</div>
+            </button>
+            <button
+              onClick={() => onMountingChange('sleeve')}
+              className={`p-4 border-2 rounded-xl text-left transition-all ${mounting === 'sleeve' ? 'border-kramer-green bg-kramer-green-light' : 'border-gray-200 hover:border-gray-300'}`}
+            >
+              <div className="font-semibold text-gray-800 mb-1">Tuleje montażowe</div>
+              <div className="text-sm text-gray-500">Łatwiejszy demontaż</div>
+              <div className="text-sm font-medium text-orange-600 mt-1">+233 zł brutto/szt.</div>
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="flex justify-between pt-2">
         <button className="btn-secondary" onClick={onBack}>← Wstecz</button>

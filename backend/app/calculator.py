@@ -74,7 +74,9 @@ def _subtract_shared_corners(shape: ShapeType, walls: List[Wall], poles_by_heigh
     """Odejmuje słupy współdzielone w narożnikach z grupowania wg wysokości."""
     shared = 0
     for i, j in _corner_pairs(shape):
-        h = max(walls[i].height, walls[j].height)
+        # Narożny słup traktujemy jako należący do niższego z dwóch odcinków,
+        # dzięki czemu wyższe słupy za bramkami nie są sztucznie zaniżane.
+        h = min(walls[i].height, walls[j].height)
         if poles_by_height.get(h, 0) > 0:
             poles_by_height[h] -= 1
             shared += 1

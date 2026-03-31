@@ -34,7 +34,6 @@ export default function App() {
   const [walls, setWalls] = useState([defaultWall()])
   const [wallsSecondary, setWallsSecondary] = useState([defaultWall()])
   const [netLayers, setNetLayers] = useState(1)
-  const [edgeFinishing, setEdgeFinishing] = useState(false)
   const [includeMountingKit, setIncludeMountingKit] = useState(false)
   const [mounting, setMounting] = useState('concrete')
   const [netId, setNetId] = useState('')
@@ -90,7 +89,6 @@ export default function App() {
         walls: wallsForCalc,
         walls_secondary: netLayers === 2 ? secondaryForCalc : undefined,
         net_layers: netLayers,
-        edge_finishing: edgeFinishing,
         include_mounting_kit: includeMountingKit,
         mounting,
         net_id: netId,
@@ -102,7 +100,7 @@ export default function App() {
     } finally {
       setCalcLoading(false)
     }
-  }, [shape, walls, wallsSecondary, netLayers, edgeFinishing, includeMountingKit, mounting, netId, quoteType])
+  }, [shape, walls, wallsSecondary, netLayers, includeMountingKit, mounting, netId, quoteType])
 
   useEffect(() => {
     const timeout = setTimeout(runCalculation, 400)
@@ -148,7 +146,6 @@ export default function App() {
           walls: wallsForCalc,
           walls_secondary: netLayers === 2 ? secondaryForCalc : undefined,
           net_layers: netLayers,
-          edge_finishing: edgeFinishing,
           include_mounting_kit: includeMountingKit,
           mounting,
           net_id: netId,
@@ -190,10 +187,6 @@ export default function App() {
                 onWallsChange={setWalls}
                 netLayers={netLayers}
                 onNetLayersChange={setNetLayers}
-                edgeFinishing={edgeFinishing}
-                onEdgeFinishingChange={setEdgeFinishing}
-                includeMountingKit={includeMountingKit}
-                onIncludeMountingKitChange={setIncludeMountingKit}
                 wallsSecondary={wallsSecondary}
                 onWallsSecondaryChange={setWallsSecondary}
                 onBack={() => setStep(1)}
@@ -209,6 +202,8 @@ export default function App() {
                 onNetChange={setNetId}
                 quoteType={quoteType}
                 onQuoteTypeChange={setQuoteType}
+                includeMountingKit={includeMountingKit}
+                onIncludeMountingKitChange={setIncludeMountingKit}
                 onBack={() => setStep(2)}
                 onNext={() => setStep(4)}
               />
