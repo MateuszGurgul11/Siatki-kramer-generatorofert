@@ -23,8 +23,8 @@ TRANSPORT_PRICE_BRUTTO = 1500.00
 ROPE_PRICE_PER_M_NETTO = 2.0
 CARABINER_PRICE_PER_UNIT_NETTO = 0.65
 TURNBUCKLE_SET_PRICE_NETTO = 60.0
-# Śruby oczkowe — jedna pozycja; wartość netto odpowiada wcześniejszej kwocie brutto ~34,48 zł
-EYE_BOLT_KIT_VALUE_NETTO = round(34.48 / _VAT, 2)
+# Śruby oczkowe — 2 szt. na słup, cena jednostkowa brutto
+EYE_BOLT_UNIT_PRICE_BRUTTO = 5.0
 
 
 def _net_markup_multiplier(area_mkw: float) -> float:
@@ -299,18 +299,14 @@ def calculate(request: CalculationRequest) -> CalculationResult:
             unit="mb",
         ))
 
-        eye_unit_netto = (
-            round(EYE_BOLT_KIT_VALUE_NETTO / eye_bolts_count, 4)
-            if eye_bolts_count
-            else EYE_BOLT_KIT_VALUE_NETTO
-        )
-        items.append(_line_item_from_netto(
-            name="Śruby oczkowe cynkowane",
-            quantity_desc=f"{eye_bolts_count} szt." if eye_bolts_count else "1 kpl.",
-            unit_price_netto=eye_unit_netto,
-            value_netto=EYE_BOLT_KIT_VALUE_NETTO,
-            unit="szt." if eye_bolts_count else "kpl.",
-        ))
+        if eye_bolts_count > 0:
+            items.append(_line_item(
+                name="Śruby oczkowe cynkowane",
+                quantity_desc=f"{eye_bolts_count} szt.",
+                unit_price_brutto=EYE_BOLT_UNIT_PRICE_BRUTTO,
+                value_brutto=EYE_BOLT_UNIT_PRICE_BRUTTO * eye_bolts_count,
+                unit="szt.",
+            ))
 
         carabiners_value_netto = carabiners_count * CARABINER_PRICE_PER_UNIT_NETTO
         items.append(_line_item_from_netto(

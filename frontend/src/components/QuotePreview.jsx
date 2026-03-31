@@ -1,7 +1,6 @@
-/** Pozycje liczone netto (jak w sklepie); suma końcowa nadal brutto z VAT. */
+/** Pozycje liczone netto (jak w sklepie); suma końcowa nadal brutto z VAT. Śruby oczkowe — cena 5 zł brutto/szt., pokazujemy brutto. */
 const MOUNTING_KIT_ITEM_NAMES = new Set([
   'Linka stalowa fi 4 mm',
-  'Śruby oczkowe cynkowane',
   'Karabińczyki cynkowane',
   'Komplet śrub rzymskich i zacisków cynkowanych',
 ])
