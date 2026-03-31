@@ -1,18 +1,26 @@
 import { useEffect, useMemo } from 'react'
 
 function parseNetOption(net) {
-  const sizeMatch = net.name.match(/oczko\s*([0-9]+(?:[x×][0-9]+(?:[.,][0-9]+)?)?)\s*cm/i)
+  // Obsługa m.in. 10×10, 4,5×4,5 (przecinek dziesiętny w nazwie siatki)
+  const sizeMatch = net.name.match(
+    /oczko\s*((?:[0-9]+[.,][0-9]+|[0-9]+)(?:\s*[x×]\s*(?:[0-9]+[.,][0-9]+|[0-9]+))?)\s*cm/i
+  )
   const thicknessMatch = net.name.match(/(?:śr\.?\s*sznurka|grubość)\s*([0-9]+(?:[.,][0-9]+)?)\s*mm/i)
   const materialMatch = net.name.match(/\b(PP|PE|PA)\b/i)
 
-  const meshSize = (sizeMatch?.[1] || 'inne').replace('x', '×')
+  const meshRaw = (sizeMatch?.[1] || '')
+    .trim()
+    .replace(/\s+/g, '')
+    .replace(/x/gi, '×')
+  const meshKey = meshRaw || 'inne'
+  const meshLabelText = meshRaw ? meshRaw.replace(/×/g, ' × ') : 'inne'
   const thickness = thicknessMatch?.[1]?.replace(',', '.') || 'brak'
   const material = materialMatch?.[1]?.toUpperCase() || ''
 
   return {
     net,
-    meshKey: meshSize,
-    meshLabel: `Rozmiar oczka ${meshSize} cm`,
+    meshKey,
+    meshLabel: `Rozmiar oczka ${meshLabelText} cm`,
     thicknessValue: parseFloat(thickness) || 0,
     thicknessLabel: `Grubość ${thickness} mm${material ? ` ${material}` : ''}`,
   }

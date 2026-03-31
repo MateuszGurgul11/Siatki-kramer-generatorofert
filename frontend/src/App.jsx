@@ -71,6 +71,12 @@ export default function App() {
     }
   }, [shape])
 
+  useEffect(() => {
+    if (quoteType === 'net_only') {
+      setMounting('concrete')
+    }
+  }, [quoteType])
+
   // Live calculation
   const runCalculation = useCallback(async () => {
     if (!netId) return

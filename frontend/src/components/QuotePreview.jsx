@@ -1,3 +1,20 @@
+/** Pozycje liczone netto (jak w sklepie); suma końcowa nadal brutto z VAT. */
+const MOUNTING_KIT_ITEM_NAMES = new Set([
+  'Linka stalowa fi 4 mm',
+  'Śruby oczkowe cynkowane',
+  'Karabińczyki cynkowane',
+  'Komplet śrub rzymskich i zacisków cynkowanych',
+])
+
+function formatItemPrice(item) {
+  if (item.unit === 'info') return '—'
+  if (MOUNTING_KIT_ITEM_NAMES.has(item.name)) {
+    const v = item.value_netto ?? 0
+    return `${Number(v).toFixed(2)} zł`
+  }
+  return `${(item.value_brutto ?? (item.value_netto * 1.23)).toFixed(2)} zł`
+}
+
 export default function QuotePreview({ result, loading, nets, netId }) {
   const net = nets.find(n => n.id === netId)
 
@@ -47,9 +64,7 @@ export default function QuotePreview({ result, loading, nets, netId }) {
                   ) : null}
                 </span>
                 <span className="font-medium text-gray-800 whitespace-nowrap">
-                  {item.unit === 'info'
-                    ? '—'
-                    : `${(item.value_brutto ?? (item.value_netto * 1.23)).toFixed(2)} zł`}
+                  {formatItemPrice(item)}
                 </span>
               </div>
             ))}

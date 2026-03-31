@@ -84,7 +84,7 @@ def generate_offer(request: OfferRequest):
 
         # 3. Generuj PDF
         pdf_path = str(PDF_DIR / f"Oferta_{offer_number}.pdf")
-        generate_pdf(offer_number, request.customer, result, pdf_path)
+        generate_pdf(offer_number, request.customer, result, pdf_path, request.calculation)
 
         # 4. Zapisz do bazy
         save_offer(

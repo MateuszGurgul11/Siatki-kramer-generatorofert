@@ -16,7 +16,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.graphics.shapes import Drawing, Rect, String
 from reportlab.graphics import renderPDF
 
-from .models import CalculationResult, CustomerData
+from .models import CalculationResult, CustomerData, CalculationRequest, ShapeType
 
 # === FONTS ===
 _FONTS_DIR = Path(__file__).parent.parent / "fonts"
@@ -52,6 +52,38 @@ COMPANY_WEBSITE = os.getenv("COMPANY_WEBSITE", "https://sklep.siatki-kramer.pl")
 LOGO_PATH = os.getenv("LOGO_PATH", str(Path(__file__).parent.parent / "assets" / "logo.png"))
 
 VAT_RATE = 0.23
+
+# W PDF w kolumnach cen: netto (jak w sklepie), pozostałe pozycje — brutto
+MOUNTING_KIT_ITEM_NAMES = frozenset({
+    "Linka stalowa fi 4 mm",
+    "Śruby oczkowe cynkowane",
+    "Karabińczyki cynkowane",
+    "Komplet śrub rzymskich i zacisków cynkowanych",
+})
+
+PDF_SHAPE_NAMES = {
+    ShapeType.LINE: "Linia prosta",
+    ShapeType.L: "Kształt L",
+    ShapeType.U: "Kształt U",
+    ShapeType.CLOSED: "Zamknięty",
+}
+
+PDF_WALL_LABELS_PRIMARY = {
+    ShapeType.LINE: ["A1"],
+    ShapeType.L: ["A1", "A3"],
+    ShapeType.U: ["A1", "A3", "A2"],
+    ShapeType.CLOSED: ["A1", "A3", "A2", "A4"],
+}
+
+PDF_WALL_LABELS_SECONDARY = {
+    ShapeType.LINE: ["A2"],
+    ShapeType.L: ["A4", "A2"],
+}
+
+
+def _fmt_dim_m(v: float) -> str:
+    s = f"{v:g}"
+    return s.replace(".", ",")
 
 
 def _para_cell(text, style: ParagraphStyle) -> Paragraph:
@@ -105,6 +137,7 @@ def generate_pdf(
     customer: CustomerData,
     result: CalculationResult,
     output_path: str,
+    calculation: CalculationRequest,
 ) -> str:
     """Generuje plik PDF oferty i zwraca ścieżkę."""
     _ensure_fonts()
@@ -240,29 +273,81 @@ def generate_pdf(
     story.append(ct)
     story.append(Spacer(1, 8))
 
+    # ── KONFIGURACJA PIŁKOCHWYTU ─────────────────────────────────
+    story.append(Paragraph("Konfiguracja piłkochwytu", section_hdr))
+    story.append(Spacer(1, 4))
+
+    cfg_style = _style("CfgBody", fontSize=9, textColor=DARK_GRAY, leading=12)
+    shape = calculation.shape
+    cfg_parts = [
+        f"<b>Kształt:</b> {PDF_SHAPE_NAMES.get(shape, shape.value)}",
+        f"<b>Liczba piłkochwytów (warstw):</b> {calculation.net_layers}",
+        "<b>Wymiary — piłkochwyt 1:</b>",
+    ]
+    labels_p = PDF_WALL_LABELS_PRIMARY.get(shape, [])
+    for i, w in enumerate(calculation.walls):
+        lab = labels_p[i] if i < len(labels_p) else f"Ściana {i + 1}"
+        cfg_parts.append(
+            f"{lab} — {_fmt_dim_m(w.length)} m × {_fmt_dim_m(w.height)} m"
+        )
+
+    if calculation.net_layers == 2 and calculation.walls_secondary:
+        cfg_parts.append("<b>Wymiary — piłkochwyt 2:</b>")
+        labels_s = PDF_WALL_LABELS_SECONDARY.get(shape, labels_p)
+        for i, w in enumerate(calculation.walls_secondary):
+            lab = labels_s[i] if i < len(labels_s) else f"Ściana {i + 1}"
+            cfg_parts.append(
+                f"{lab} — {_fmt_dim_m(w.length)} m × {_fmt_dim_m(w.height)} m"
+            )
+
+    if calculation.include_mounting_kit:
+        eye_bolts = 2 * result.poles_count
+        cfg_parts.append("<b>Zestaw montażowy (szczegóły ilościowe):</b>")
+        cfg_parts.append(
+            f"Linka stalowa: ok. {result.rope_length:.0f} mb (szacowany obwód)"
+        )
+        cfg_parts.append(f"Śruby oczkowe cynkowane: {eye_bolts} szt.")
+        cfg_parts.append(f"Karabińczyki cynkowane: {result.carabiners_count} szt.")
+        cfg_parts.append(
+            f"Komplety śrub rzymskich i zacisków: {result.turnbuckle_sets} kpl."
+        )
+
+    story.append(Paragraph("<br/>".join(cfg_parts), cfg_style))
+    story.append(Spacer(1, 8))
+
     # ── TABELA MATERIAŁÓW ───────────────────────────────────────
     story.append(Paragraph("Zestawienie materiałów", section_hdr))
     story.append(Spacer(1, 4))
+    story.append(Paragraph(
+        "Pozycje zestawu montażowego w kolumnach cen — wartości netto; pozostałe pozycje — brutto.",
+        _style("TabNote", fontSize=7.5, textColor=MID_GRAY, spaceAfter=4),
+    ))
 
     def _hdr(text):
         return Paragraph(text.replace("\n", "<br/>"), hdr_cell_style)
 
     table_data = [[
         _hdr("Lp."), _hdr("Nazwa towaru"), _hdr("Wys.<br/>[m]"), _hdr("Ilość"),
-        _hdr("Pow.<br/>[mkw.]"), _hdr("Cena jedn.<br/>(brutto)"), _hdr("Wartość<br/>brutto"),
+        _hdr("Pow.<br/>[mkw.]"), _hdr("Cena<br/>jedn."), _hdr("Wartość"),
     ]]
 
     for i, item in enumerate(result.items, 1):
         unit_brutto = item.unit_price_brutto if item.unit_price_brutto is not None else item.unit_price_netto * (1 + VAT_RATE)
         val_brutto = item.value_brutto if item.value_brutto is not None else item.value_netto * (1 + VAT_RATE)
+        if item.name in MOUNTING_KIT_ITEM_NAMES:
+            unit_show = float(item.unit_price_netto or 0.0)
+            val_show = float(item.value_netto or 0.0)
+        else:
+            unit_show = float(unit_brutto)
+            val_show = float(val_brutto)
         table_data.append([
             _para_cell(str(i), item_cell_center_style),
             _para_cell(item.name, item_cell_style),
             _para_cell(f"{item.height:.0f}" if item.height else "—", item_cell_center_style),
             _para_cell(item.quantity_desc or "—", item_cell_style),
             _para_cell(f"{item.area:.2f}" if item.area else "—", item_cell_right_style),
-            _para_cell(f"{unit_brutto:.2f} zł", item_cell_right_style),
-            _para_cell(f"{val_brutto:.2f} zł", item_cell_right_style),
+            _para_cell(f"{unit_show:.2f} zł", item_cell_right_style),
+            _para_cell(f"{val_show:.2f} zł", item_cell_right_style),
         ])
 
     table_data.append(["", "", "", "", "",

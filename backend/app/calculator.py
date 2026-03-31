@@ -19,11 +19,23 @@ BRACE_PRICE_BRUTTO = 430.00
 SLEEVE_PRICE_BRUTTO = 233.00
 TRANSPORT_PRICE_BRUTTO = 1500.00
 
-# Zestaw montażowy (brutto) — dodawany tylko gdy wybrany w kroku 2
-ROPE_KIT_PRICE_BRUTTO = 56.00
-EYE_BOLT_KIT_PRICE_BRUTTO = 34.48
-CARABINER_KIT_PRICE_BRUTTO = 65.00
-TURNBUCKLE_KIT_PRICE_BRUTTO = 120.00
+# Zestaw montażowy — stawki jednostkowe NETTO (UniCPO); brutto = netto × (1 + VAT) przy pozycji
+ROPE_PRICE_PER_M_NETTO = 2.0
+CARABINER_PRICE_PER_UNIT_NETTO = 0.65
+TURNBUCKLE_SET_PRICE_NETTO = 60.0
+# Śruby oczkowe — jedna pozycja; wartość netto odpowiada wcześniejszej kwocie brutto ~34,48 zł
+EYE_BOLT_KIT_VALUE_NETTO = round(34.48 / _VAT, 2)
+
+
+def _net_markup_multiplier(area_mkw: float) -> float:
+    """Mnożnik narzutu na materiał siatkowy (wg progów powierzchni w mkw., jak UniCPO)."""
+    if area_mkw <= 5:
+        return 2.0
+    if area_mkw <= 10:
+        return 1.5
+    if area_mkw <= 15:
+        return 1.3
+    return 1.0
 
 # Liczba zastrzałów wg kształtu
 SHAPE_BRACES = {
@@ -87,6 +99,10 @@ def _as_netto(brutto: float) -> float:
     return round(brutto / _VAT, 2)
 
 
+def _as_brutto(netto: float) -> float:
+    return round(netto * _VAT, 2)
+
+
 def _line_item(
     name: str,
     unit_price_brutto: float,
@@ -106,6 +122,32 @@ def _line_item(
         value_brutto=round(value_brutto, 2),
         unit_price_netto=_as_netto(unit_price_brutto),
         value_netto=_as_netto(value_brutto),
+        unit=unit,
+    )
+
+
+def _line_item_from_netto(
+    name: str,
+    unit_price_netto: float,
+    value_netto: float,
+    *,
+    height: float | None = None,
+    quantity_desc: str | None = None,
+    area: float | None = None,
+    unit: str = "szt.",
+) -> LineItem:
+    """Pozycja liczona od cen netto; brutto dopisywane VAT (jak zestaw montażowy)."""
+    upn = round(unit_price_netto, 2)
+    vn = round(value_netto, 2)
+    return LineItem(
+        name=name,
+        height=height,
+        quantity_desc=quantity_desc,
+        area=area,
+        unit_price_netto=upn,
+        value_netto=vn,
+        unit_price_brutto=_as_brutto(upn),
+        value_brutto=_as_brutto(vn),
         unit=unit,
     )
 
@@ -153,10 +195,16 @@ def calculate(request: CalculationRequest) -> CalculationResult:
     # Obwód (długość linki) — obwód każdej siatki zaokrąglony w górę
     rope_length = sum(math.ceil(2 * (w.length + w.height)) for group in walls_groups for w in group)
 
-    # Akcesoria (wartości pośrednie do podglądu)
+    # Akcesoria (wartości pośrednie do podglądu / PDF) — jak UniCPO
     eye_bolts_count = 2 * total_poles if include_mounting_kit else 0
     carabiners_count = math.ceil(rope_length * 3 / 100) * 100 if include_mounting_kit else 0
-    turnbuckle_sets = sum(math.ceil(w.length / 30) for group in walls_groups for w in group) if include_mounting_kit else 0
+    # Komplety śrub rzymskich: max(1, floor(obwód_segmentu/30)) na ścianę (obwód = 2×(dł.+wys.))
+    turnbuckle_sets = 0
+    if include_mounting_kit:
+        for group in walls_groups:
+            for w in group:
+                perim = 2.0 * (w.length + w.height)
+                turnbuckle_sets += max(1, math.floor(perim / 30.0))
 
     items: List[LineItem] = []
 
@@ -167,16 +215,19 @@ def calculate(request: CalculationRequest) -> CalculationResult:
     net = get_net_by_id(request.net_id)
     if net:
         net_price_brutto = round(net["price_brutto"], 2)
-        net_value_brutto = net_price_brutto * net_area
+        markup_mult = _net_markup_multiplier(net_area)
+        net_value_brutto = round(net_price_brutto * net_area * markup_mult, 2)
         layers_desc = f"{request.net_layers} {'siatki' if request.net_layers == 2 else 'siatka'}"
         if edge_finishing:
             layers_desc += ", obszycie krawędzi: TAK"
+        if markup_mult != 1.0:
+            layers_desc += f", narzut materiału: ×{markup_mult:g}"
         items.append(_line_item(
             name=net["name"],
             height=walls_primary[0].height if walls_primary else 4,
             quantity_desc=layers_desc,
             area=net_area,
-            unit_price_brutto=net_price_brutto,
+            unit_price_brutto=round(net_price_brutto * markup_mult, 2),
             value_brutto=net_value_brutto,
             unit="mkw.",
         ))
@@ -227,8 +278,8 @@ def calculate(request: CalculationRequest) -> CalculationResult:
                     unit="szt.",
                 ))
 
-    # Tuleje montażowe
-    if mounting == MountingType.SLEEVE:
+    # Tuleje montażowe (tylko przy kompletnej wycenie — przy samej siatce brak słupów w ofercie)
+    if quote_type == QuoteType.COMPLETE and mounting == MountingType.SLEEVE:
         sleeve_value = SLEEVE_PRICE_BRUTTO * total_poles
         items.append(_line_item(
             name="Tuleje montażowe cynkowane",
@@ -239,35 +290,43 @@ def calculate(request: CalculationRequest) -> CalculationResult:
         ))
 
     if include_mounting_kit:
-        items.append(_line_item(
+        rope_value_netto = rope_length * ROPE_PRICE_PER_M_NETTO
+        items.append(_line_item_from_netto(
             name="Linka stalowa fi 4 mm",
-            quantity_desc="Zestaw montażowy",
-            unit_price_brutto=ROPE_KIT_PRICE_BRUTTO,
-            value_brutto=ROPE_KIT_PRICE_BRUTTO,
-            unit="kpl.",
+            quantity_desc=f"{rope_length:.0f} mb",
+            unit_price_netto=ROPE_PRICE_PER_M_NETTO,
+            value_netto=rope_value_netto,
+            unit="mb",
         ))
 
-        items.append(_line_item(
+        eye_unit_netto = (
+            round(EYE_BOLT_KIT_VALUE_NETTO / eye_bolts_count, 4)
+            if eye_bolts_count
+            else EYE_BOLT_KIT_VALUE_NETTO
+        )
+        items.append(_line_item_from_netto(
             name="Śruby oczkowe cynkowane",
-            quantity_desc="Zestaw montażowy",
-            unit_price_brutto=EYE_BOLT_KIT_PRICE_BRUTTO,
-            value_brutto=EYE_BOLT_KIT_PRICE_BRUTTO,
-            unit="kpl.",
+            quantity_desc=f"{eye_bolts_count} szt." if eye_bolts_count else "1 kpl.",
+            unit_price_netto=eye_unit_netto,
+            value_netto=EYE_BOLT_KIT_VALUE_NETTO,
+            unit="szt." if eye_bolts_count else "kpl.",
         ))
 
-        items.append(_line_item(
+        carabiners_value_netto = carabiners_count * CARABINER_PRICE_PER_UNIT_NETTO
+        items.append(_line_item_from_netto(
             name="Karabińczyki cynkowane",
-            quantity_desc="Zestaw montażowy",
-            unit_price_brutto=CARABINER_KIT_PRICE_BRUTTO,
-            value_brutto=CARABINER_KIT_PRICE_BRUTTO,
-            unit="kpl.",
+            quantity_desc=f"{carabiners_count} szt.",
+            unit_price_netto=CARABINER_PRICE_PER_UNIT_NETTO,
+            value_netto=carabiners_value_netto,
+            unit="szt.",
         ))
 
-        items.append(_line_item(
+        turnbuckle_value_netto = turnbuckle_sets * TURNBUCKLE_SET_PRICE_NETTO
+        items.append(_line_item_from_netto(
             name="Komplet śrub rzymskich i zacisków cynkowanych",
-            quantity_desc="Zestaw montażowy",
-            unit_price_brutto=TURNBUCKLE_KIT_PRICE_BRUTTO,
-            value_brutto=TURNBUCKLE_KIT_PRICE_BRUTTO,
+            quantity_desc=f"{turnbuckle_sets} kpl.",
+            unit_price_netto=TURNBUCKLE_SET_PRICE_NETTO,
+            value_netto=turnbuckle_value_netto,
             unit="kpl.",
         ))
 
@@ -290,7 +349,7 @@ def calculate(request: CalculationRequest) -> CalculationResult:
 
     # === 3. Podsumowanie ===
     total_brutto = round(sum((item.value_brutto or 0.0) for item in items), 2)
-    total_netto = _as_netto(total_brutto)
+    total_netto = round(sum((item.value_netto or 0.0) for item in items), 2)
     vat = round(total_brutto - total_netto, 2)
 
     return CalculationResult(
