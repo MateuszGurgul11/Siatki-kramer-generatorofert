@@ -28,6 +28,7 @@ export default function App() {
   const [loading, setLoading] = useState(false)
   const [calcLoading, setCalcLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [netsLoading, setNetsLoading] = useState(true)
 
   // Form state
   const [shape, setShape] = useState('line')
@@ -41,10 +42,13 @@ export default function App() {
   const [customer, setCustomer] = useState({ name: '', email: '', phone: '', address: '' })
 
   useEffect(() => {
-    fetchNets().then(data => {
-      setNets(data)
-      if (data.length > 0) setNetId(data[0].id)
-    }).catch(console.error)
+    fetchNets()
+      .then(data => {
+        setNets(data)
+        if (data.length > 0) setNetId(data[0].id)
+        setNetsLoading(false)
+      })
+      .catch(console.error)
   }, [])
 
   // Sync walls count with shape
@@ -173,6 +177,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 overflow-x-hidden">
+
       <div className="max-w-6xl mx-auto px-4 pt-16 pb-8 sm:pt-20">
         <StepIndicator steps={STEPS} currentStep={step} />
 
@@ -228,7 +233,7 @@ export default function App() {
 
           {/* Live Preview — pod formularzem na mobile, bokiem na desktop */}
           <div className="w-full lg:w-80 lg:flex-shrink-0 order-2 lg:sticky lg:top-4 lg:self-start">
-            <QuotePreview result={result} loading={calcLoading} nets={nets} netId={netId} />
+            <QuotePreview result={result} loading={calcLoading} nets={nets} netId={netId} netsLoading={netsLoading} />
           </div>
         </div>
 
