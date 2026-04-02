@@ -19,10 +19,10 @@ BRACE_PRICE_BRUTTO = 430.00
 SLEEVE_PRICE_BRUTTO = 233.00
 TRANSPORT_PRICE_BRUTTO = 1500.00
 
-# Zestaw montażowy — stawki jednostkowe NETTO (UniCPO); brutto = netto × (1 + VAT) przy pozycji
-ROPE_PRICE_PER_M_NETTO = 2.0
-CARABINER_PRICE_PER_UNIT_NETTO = 0.65
-TURNBUCKLE_SET_PRICE_NETTO = 60.0
+# Zestaw montażowy — stawki jednostkowe BRUTTO (PLN); netto z VAT 23% wylicza _line_item()
+ROPE_PRICE_PER_M_BRUTTO = 2.0
+CARABINER_PRICE_PER_UNIT_BRUTTO = 0.65
+TURNBUCKLE_SET_PRICE_BRUTTO = 60.0
 # Śruby oczkowe — 2 szt. na słup, cena jednostkowa brutto
 EYE_BOLT_UNIT_PRICE_BRUTTO = 5.0
 
@@ -99,10 +99,6 @@ def _as_netto(brutto: float) -> float:
     return round(brutto / _VAT, 2)
 
 
-def _as_brutto(netto: float) -> float:
-    return round(netto * _VAT, 2)
-
-
 def _line_item(
     name: str,
     unit_price_brutto: float,
@@ -122,32 +118,6 @@ def _line_item(
         value_brutto=round(value_brutto, 2),
         unit_price_netto=_as_netto(unit_price_brutto),
         value_netto=_as_netto(value_brutto),
-        unit=unit,
-    )
-
-
-def _line_item_from_netto(
-    name: str,
-    unit_price_netto: float,
-    value_netto: float,
-    *,
-    height: float | None = None,
-    quantity_desc: str | None = None,
-    area: float | None = None,
-    unit: str = "szt.",
-) -> LineItem:
-    """Pozycja liczona od cen netto; brutto dopisywane VAT (jak zestaw montażowy)."""
-    upn = round(unit_price_netto, 2)
-    vn = round(value_netto, 2)
-    return LineItem(
-        name=name,
-        height=height,
-        quantity_desc=quantity_desc,
-        area=area,
-        unit_price_netto=upn,
-        value_netto=vn,
-        unit_price_brutto=_as_brutto(upn),
-        value_brutto=_as_brutto(vn),
         unit=unit,
     )
 
@@ -290,12 +260,12 @@ def calculate(request: CalculationRequest) -> CalculationResult:
         ))
 
     if include_mounting_kit:
-        rope_value_netto = rope_length * ROPE_PRICE_PER_M_NETTO
-        items.append(_line_item_from_netto(
+        rope_value_brutto = rope_length * ROPE_PRICE_PER_M_BRUTTO
+        items.append(_line_item(
             name="Linka stalowa fi 4 mm",
             quantity_desc=f"{rope_length:.0f} mb",
-            unit_price_netto=ROPE_PRICE_PER_M_NETTO,
-            value_netto=rope_value_netto,
+            unit_price_brutto=ROPE_PRICE_PER_M_BRUTTO,
+            value_brutto=rope_value_brutto,
             unit="mb",
         ))
 
@@ -308,21 +278,21 @@ def calculate(request: CalculationRequest) -> CalculationResult:
                 unit="szt.",
             ))
 
-        carabiners_value_netto = carabiners_count * CARABINER_PRICE_PER_UNIT_NETTO
-        items.append(_line_item_from_netto(
+        carabiners_value_brutto = carabiners_count * CARABINER_PRICE_PER_UNIT_BRUTTO
+        items.append(_line_item(
             name="Karabińczyki cynkowane",
             quantity_desc=f"{carabiners_count} szt.",
-            unit_price_netto=CARABINER_PRICE_PER_UNIT_NETTO,
-            value_netto=carabiners_value_netto,
+            unit_price_brutto=CARABINER_PRICE_PER_UNIT_BRUTTO,
+            value_brutto=carabiners_value_brutto,
             unit="szt.",
         ))
 
-        turnbuckle_value_netto = turnbuckle_sets * TURNBUCKLE_SET_PRICE_NETTO
-        items.append(_line_item_from_netto(
+        turnbuckle_value_brutto = turnbuckle_sets * TURNBUCKLE_SET_PRICE_BRUTTO
+        items.append(_line_item(
             name="Komplet śrub rzymskich i zacisków cynkowanych",
             quantity_desc=f"{turnbuckle_sets} kpl.",
-            unit_price_netto=TURNBUCKLE_SET_PRICE_NETTO,
-            value_netto=turnbuckle_value_netto,
+            unit_price_brutto=TURNBUCKLE_SET_PRICE_BRUTTO,
+            value_brutto=turnbuckle_value_brutto,
             unit="kpl.",
         ))
 

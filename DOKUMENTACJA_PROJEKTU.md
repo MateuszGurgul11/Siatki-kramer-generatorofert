@@ -144,7 +144,7 @@ Formularz danych klienta:
 - Adres / miejscowość (opcjonalnie — wpływa na transport)
 
 Po zatwierdzeniu:
-1. System generuje **unikalny numer oferty** (np. `KR-2024-00123`)
+1. System generuje **unikalny numer oferty** w formacie `KR-ROK-NNNNN`, gdzie pięciocyfrowy sufiks jest **losowy** (nie kolejny), np. `KR-2024-48291`
 2. Generowany jest **plik PDF** z wyszczególnieniem:
    - Danych klienta i firmy (Siatki Kramer)
    - Numeru oferty i daty

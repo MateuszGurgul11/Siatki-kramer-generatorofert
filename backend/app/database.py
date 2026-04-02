@@ -1,5 +1,6 @@
-import sqlite3
 import os
+import secrets
+import sqlite3
 from datetime import datetime
 
 DATABASE_PATH = os.getenv("DATABASE_PATH", "./offers.db")
@@ -35,18 +36,24 @@ def init_db():
 
 
 def get_next_offer_number() -> str:
-    """Generuje kolejny numer oferty w formacie KR-YYYY-NNNNN."""
+    """Generuje unikalny numer oferty KR-YYYY-NNNNN (losowy 5-cyfrowy sufiks 10000–99999)."""
+    year = datetime.now().year
+    prefix = f"KR-{year}-"
     conn = get_connection()
     cursor = conn.cursor()
-    year = datetime.now().year
-    cursor.execute(
-        "SELECT COUNT(*) as cnt FROM offers WHERE offer_number LIKE ?",
-        (f"KR-{year}-%",)
-    )
-    row = cursor.fetchone()
-    conn.close()
-    count = row["cnt"] + 1
-    return f"KR-{year}-{count:05d}"
+    try:
+        for _ in range(100):
+            suffix = secrets.randbelow(90000) + 10000
+            candidate = f"{prefix}{suffix:05d}"
+            cursor.execute(
+                "SELECT 1 FROM offers WHERE offer_number = ? LIMIT 1",
+                (candidate,),
+            )
+            if cursor.fetchone() is None:
+                return candidate
+        raise RuntimeError("Nie udało się wygenerować unikalnego numeru oferty po 100 próbach.")
+    finally:
+        conn.close()
 
 
 def save_offer(

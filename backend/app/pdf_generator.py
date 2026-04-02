@@ -294,8 +294,6 @@ def generate_pdf(
         ("Typ wyceny",
          "Kompletna (słupy + zastrzały + siatka)" if calculation.quote_type == QuoteType.COMPLETE
          else "Tylko siatka + akcesoria"),
-        ("Obszycie krawędzi siatki",
-         "TAK" if calculation.edge_finishing else "NIE"),
     ]
 
     # Wymiary ścian – piłkochwyt 1

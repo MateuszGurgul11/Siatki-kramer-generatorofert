@@ -1,17 +1,8 @@
-/** Pozycje liczone netto (jak w sklepie); suma końcowa nadal brutto z VAT. Śruby oczkowe — cena 5 zł brutto/szt., pokazujemy brutto. */
-const MOUNTING_KIT_ITEM_NAMES = new Set([
-  'Linka stalowa fi 4 mm',
-  'Karabińczyki cynkowane',
-  'Komplet śrub rzymskich i zacisków cynkowanych',
-])
-
+/** Kwoty wierszy = wartość brutto (VAT 23%); pozycje info bez ceny. */
 function formatItemPrice(item) {
   if (item.unit === 'info') return '—'
-  if (MOUNTING_KIT_ITEM_NAMES.has(item.name)) {
-    const v = item.value_netto ?? 0
-    return `${Number(v).toFixed(2)} zł`
-  }
-  return `${(item.value_brutto ?? (item.value_netto * 1.23)).toFixed(2)} zł`
+  const vb = item.value_brutto ?? (item.value_netto != null ? item.value_netto * 1.23 : 0)
+  return `${Number(vb).toFixed(2)} zł`
 }
 
 export default function QuotePreview({ result, loading, nets, netId, netsLoading }) {
